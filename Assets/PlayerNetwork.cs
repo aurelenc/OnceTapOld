@@ -5,20 +5,28 @@ using UnityEngine;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-    //private NetworkVariable<int> randomNumber;
+    private NetworkVariable<Vector2> direction = new NetworkVariable<Vector2>(new(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     void Update()
     {
         if (!IsOwner) return;
 
-        Vector3 moveDir = new Vector3();
+        Vector2 movement = new();
 
-        if (Input.GetKey(KeyCode.W)) moveDir.z = +1f;
-        if (Input.GetKey(KeyCode.S)) moveDir.z = -1f;
-        if (Input.GetKey(KeyCode.A)) moveDir.x = -1f;
-        if (Input.GetKey(KeyCode.D)) moveDir.x = +1f;
+        if (Input.GetKey(KeyCode.W)) movement.y = +1f;
+        if (Input.GetKey(KeyCode.S)) movement.y = -1f;
+        if (Input.GetKey(KeyCode.A)) movement.x = -1f;
+        if (Input.GetKey(KeyCode.D)) movement.x = +1f;
+
+        if (direction.Value != movement)
+            direction.Value = movement;
+    }
+
+    private void FixedUpdate()
+    {
+        if (!IsServer) return;
 
         float moveSpeed = 3f;
-        transform.position += moveDir * moveSpeed * Time.deltaTime;
+        transform.position += moveSpeed * Time.deltaTime * new Vector3(direction.Value.x, 0, direction.Value.y);
     }
 }
